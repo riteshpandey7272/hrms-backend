@@ -11,6 +11,11 @@ router = APIRouter(prefix="/api/attendance", tags=["Attendance"])
 async def mark_attendance(attendance: AttendanceCreate):
     db = get_db()
 
+    # Reject future dates
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if attendance.date > today:
+        raise HTTPException(status_code=400, detail="Cannot mark attendance for a future date")
+
     # Verify employee exists or not
     employee = await db.employees.find_one({"employee_id": attendance.employee_id})
     if not employee:
